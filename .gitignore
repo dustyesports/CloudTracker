@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.env
+
+# Tracker runtime state
+.tracker-state.json
+
+# Playwright
+playwright-report/
+test-results/
+
+# Temp scrape artifacts
+page.html
+page2.html
+track-p.html
+cookies.txt
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
