@@ -34,22 +34,17 @@ jobs:
       - name: Restore tracker state
         uses: actions/cache/restore@v4
         with:
-          path: .tracker-state.json
+          path: .tracker-state-*.json
           key: tracker-state-${{ github.repository_id }}-v1
 
       - name: Run tracking check
         env:
           TRACKING_NUMBER: ${{ secrets.TRACKING_NUMBER }}
-          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
-          TRACKING_URL: ${{ secrets.TRACKING_URL }}
-          KEYWORD: ${{ vars.KEYWORD || 'Vore' }}
-          NTFY_SERVER: ${{ vars.NTFY_SERVER || 'https://ntfy.sh' }}
-          STATE_FILE: .tracker-state.json
         run: python -m tracker.check
 
       - name: Save tracker state
         uses: actions/cache/save@v4
         if: always()
         with:
-          path: .tracker-state.json
+          path: .tracker-state-*.json
           key: tracker-state-${{ github.repository_id }}-v1

@@ -5,10 +5,14 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 
 @dataclass(frozen=True)
 class Config:
-    tracking_number: str
+    tracking_numbers: list[str]
     tracking_url: str
     keyword: str
     ntfy_topic: str
@@ -18,22 +22,19 @@ class Config:
 
     @classmethod
     def from_env(cls) -> Config:
-        tracking_number = os.environ.get("TRACKING_NUMBER", "").strip()
-        if not tracking_number:
+        tracking_numbers_str = os.environ.get("TRACKING_NUMBER", "").strip()
+        if not tracking_numbers_str:
             raise ValueError("TRACKING_NUMBER environment variable is required.")
 
-        ntfy_topic = os.environ.get("NTFY_TOPIC", "").strip()
-        if not ntfy_topic:
-            raise ValueError("NTFY_TOPIC environment variable is required.")
-
-        default_url = "https://al.albaniancourier.al/track-trace/"
+        # Support comma-separated tracking numbers
+        tracking_numbers = [tn.strip() for tn in tracking_numbers_str.split(",") if tn.strip()]
 
         return cls(
-            tracking_number=tracking_number,
-            tracking_url=os.environ.get("TRACKING_URL", default_url).strip(),
-            keyword=os.environ.get("KEYWORD", "Vore").strip(),
-            ntfy_topic=ntfy_topic,
-            ntfy_server=os.environ.get("NTFY_SERVER", "https://ntfy.sh").rstrip("/"),
-            state_file=os.environ.get("STATE_FILE", ".tracker-state.json"),
-            page_timeout_ms=int(os.environ.get("PAGE_TIMEOUT_MS", "90000")),
+            tracking_numbers=tracking_numbers,
+            tracking_url="https://al.albaniancourier.al/track-trace/?podNr=",
+            keyword="Albanian Courier Vore",
+            ntfy_topic="cursorAC",
+            ntfy_server="https://ntfy.sh",
+            state_file=".tracker-state.json",
+            page_timeout_ms=90000,
         )

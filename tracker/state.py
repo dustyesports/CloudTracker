@@ -57,4 +57,9 @@ def extract_snippet(text: str, keyword: str, radius: int = 120) -> str:
         snippet = f"...{snippet}"
     if end < len(text):
         snippet = f"{snippet}..."
+    
+    # Limit to tweet length (280 characters)
+    if len(snippet) > 280:
+        snippet = snippet[:277] + "..."
+    
     return snippet

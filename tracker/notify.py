@@ -21,7 +21,7 @@ def send_alert(
     url = f"{ntfy_server}/{topic}"
     headers = {
         "Title": title,
-        "Priority": "5",
+        "Priority": "4",
         "Tags": "package,rotating_light",
     }
     if click_url:

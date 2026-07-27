@@ -106,6 +106,15 @@ def _maybe_submit_tracking_form(page, tracking_number: str, timeout_ms: int) -> 
 
 def fetch_tracking_text(tracking_url: str, tracking_number: str, timeout_ms: int) -> str:
     """Load the tracking page in headless Chromium and return visible text."""
+    # Append tracking number to URL if URL ends with parameter placeholder
+    if tracking_url.endswith("=") and tracking_number:
+        tracking_url = f"{tracking_url}{tracking_number}"
+    elif "podNr=" not in tracking_url and tracking_number:
+        if "?" in tracking_url:
+            tracking_url = f"{tracking_url}&podNr={tracking_number}"
+        else:
+            tracking_url = f"{tracking_url}?podNr={tracking_number}"
+    
     logger.info("Fetching tracking page: %s", tracking_url)
 
     with sync_playwright() as playwright:

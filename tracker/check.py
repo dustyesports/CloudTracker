@@ -33,49 +33,50 @@ def should_notify(previous: TrackerState, found: bool, new_hash: str) -> bool:
 
 def run_check() -> int:
     config = Config.from_env()
-    previous = load_state(config.state_file)
+    
+    for index, tracking_number in enumerate(config.tracking_numbers, start=1):
+        # Use tracking number-specific state file
+        state_file = f".tracker-state-{tracking_number}.json"
+        previous = load_state(state_file)
 
-    text = fetch_tracking_text(
-        tracking_url=config.tracking_url,
-        tracking_number=config.tracking_number,
-        timeout_ms=config.page_timeout_ms,
-    )
-
-    found = keyword_present(text, config.keyword)
-    new_hash = content_hash(text)
-    snippet = extract_snippet(text, config.keyword)
-
-    logger.info(
-        "Keyword '%s' %s on tracking page.",
-        config.keyword,
-        "FOUND" if found else "not found",
-    )
-
-    if should_notify(previous, found, new_hash):
-        send_alert(
-            ntfy_server=config.ntfy_server,
-            topic=config.ntfy_topic,
-            title=f"Package update: {config.keyword} detected",
-            message=(
-                f"Your Albanian Courier shipment ({config.tracking_number}) "
-                f"now mentions '{config.keyword}'.\n\n"
-                f"Status excerpt:\n{snippet}"
-            ),
-            click_url=config.tracking_url,
+        text = fetch_tracking_text(
+            tracking_url=config.tracking_url,
+            tracking_number=tracking_number,
+            timeout_ms=config.page_timeout_ms,
         )
-    elif found:
-        logger.info("Keyword still present; skipping duplicate notification.")
-    else:
-        logger.info("Keyword not found; no notification sent.")
 
-    save_state(
-        config.state_file,
-        TrackerState(
-            keyword_found=found,
-            content_hash=new_hash,
-            last_snippet=snippet,
-        ),
-    )
+        found = keyword_present(text, config.keyword)
+        new_hash = content_hash(text)
+        snippet = extract_snippet(text, config.keyword)
+
+        logger.info(
+            "Tracking number %s: Keyword '%s' %s on tracking page.",
+            tracking_number,
+            config.keyword,
+            "FOUND" if found else "not found",
+        )
+
+        if should_notify(previous, found, new_hash):
+            send_alert(
+                ntfy_server=config.ntfy_server,
+                topic=config.ntfy_topic,
+                title=f"Package {index}: {tracking_number} Devin Package Update",
+                message=f"Status excerpt:\n{snippet}",
+                click_url=f"{config.tracking_url}{tracking_number}",
+            )
+        elif found:
+            logger.info("Keyword still present; skipping duplicate notification.")
+        else:
+            logger.info("Keyword not found; no notification sent.")
+
+        save_state(
+            state_file,
+            TrackerState(
+                keyword_found=found,
+                content_hash=new_hash,
+                last_snippet=snippet,
+            ),
+        )
     return 0
 
 
